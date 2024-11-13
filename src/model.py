@@ -4,6 +4,7 @@ from torch.optim import Adam
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
+from typing import List
 
 '''
     @author Dmytro Gnatyk
@@ -11,16 +12,16 @@ from torchvision.datasets import MNIST
 '''
 
 # Device
-device = ['cuda:0' if torch.cuda.is_available() else 'cpu']
+device: List[str] = ['cuda:0' if torch.cuda.is_available() else 'cpu']
 
 # Transform
-transform = transforms.Compose([
+transform: transforms.Compose = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-data_set = MNIST(root='./data', train=True, download=True, transform=transform)
-data_loader = DataLoader(data_set, batch_size=32, shuffle=True)
+data_set: MNIST = MNIST(root='./data', train=True, download=True, transform=transform)
+data_loader: DataLoader = DataLoader(data_set, batch_size=32, shuffle=True)
 
 for images, label in data_loader:
     print(f"Image batch size shape -> {images.shape}")
@@ -28,13 +29,13 @@ for images, label in data_loader:
     break
 
 # Classes of Images
-classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+classes: List[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 class CNN(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super(CNN, self).__init__()
 
-        self.conv_layer = nn.Sequential(
+        self.conv_layer: nn.Sequential = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -46,7 +47,7 @@ class CNN(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
-        self.fc_layer = nn.Sequential(
+        self.fc_layer: nn.Sequential = nn.Sequential(
             nn.Linear(128 * 3 * 3, 1024),
             nn.ReLU(),
             nn.Linear(1024, 512),
@@ -54,21 +55,21 @@ class CNN(nn.Module):
             nn.Linear(512, 10)
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv_layer(x)
         x = x.view(x.size(0), -1)
         x = self.fc_layer(x)
         return x
 
-model = CNN().to(device[0])
+model: CNN = CNN().to(device[0])
 print(model)
 
 # Loss and Optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters(), lr=0.001)
+criterion: nn.CrossEntropyLoss = nn.CrossEntropyLoss()
+optimizer: Adam = Adam(model.parameters(), lr=0.001)
 
 # Training
-num_epochs = 5
+num_epochs: int = 5
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(data_loader):
         images = images.to(device[0])
@@ -84,7 +85,7 @@ for epoch in range(num_epochs):
         if (i + 1) % 100 == 0:
             print(f"Epoch: {epoch + 1}, Step: {i + 1}, Loss: {loss.item()}")
 
-def main():
+def main() -> None:
     print("Saving Model...")
     torch.save(model.state_dict(), 'model.pth')
 
